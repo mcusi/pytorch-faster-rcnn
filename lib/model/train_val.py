@@ -48,7 +48,7 @@ class SolverWrapper(object):
     # Simply put '_val' at the end to save the summaries from the validation set
     self.tbvaldir = tbdir + '_val'
     if not os.path.exists(self.tbvaldir):
-      os.makedirs(self.tbvaldir)
+      os.makedirs(self.tbvaldir,exist_ok=True)
     self.pretrained_model = pretrained_model
 
   def snapshot(self, iter):

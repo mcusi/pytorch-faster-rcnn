@@ -10,11 +10,13 @@ from __future__ import print_function
 import numpy as np
 from layer_utils.generate_anchors import generate_anchors
 
-def generate_anchors_pre(height, width, feat_stride, anchor_scales=(8,16,32), anchor_ratios=(0.5,1,2)):
+def generate_anchors_pre(height, width, base_size, feat_stride, anchor_scales=(8,16,32), anchor_ratios=(0.5,1,2)):
   """ A wrapper function to generate anchors given different scales
     Also return the number of anchors in variable 'length'
+
+  added base_size Jan 3
   """
-  anchors = generate_anchors(ratios=np.array(anchor_ratios), scales=np.array(anchor_scales))
+  anchors = generate_anchors(base_size=base_size,ratios=np.array(anchor_ratios), scales=np.array(anchor_scales))
   A = anchors.shape[0]
   shift_x = np.arange(0, width) * feat_stride
   shift_y = np.arange(0, height) * feat_stride

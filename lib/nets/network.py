@@ -172,7 +172,7 @@ class Network(nn.Module):
     #height = int(math.ceil(self._im_info.data[0, 0] / self._feat_stride[0]))
     #width = int(math.ceil(self._im_info.data[0, 1] / self._feat_stride[0]))
     anchors, anchor_length = generate_anchors_pre(\
-                                          height, width,
+                                          height, width, cfg.ANCHOR_REFERENCE,
                                            self._feat_stride, self._anchor_scales, self._anchor_ratios)
     self._anchors = Variable(torch.from_numpy(anchors).cuda())
     self._anchor_length = anchor_length

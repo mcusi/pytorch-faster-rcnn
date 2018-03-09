@@ -5,13 +5,21 @@ set -e
 
 export PYTHONUNBUFFERED="True"
 
+echo $@
+
 GPU_ID=$1
 DATASET=$2
 NET=$3
+SNAPSHOT_TRAIN=$4
+ANCHORS_TRAIN=$5
+RATIOS_TRAIN=$6
+ANCHORREF_TRAIN=$7
+dataname=$8
+export dataname=$dataname
 
 array=( $@ )
 len=${#array[@]}
-EXTRA_ARGS=${array[@]:3:$len}
+EXTRA_ARGS=${array[@]:8:$len}
 EXTRA_ARGS_SLUG=${EXTRA_ARGS// /_}
 
 case ${DATASET} in
@@ -36,6 +44,15 @@ case ${DATASET} in
     ANCHORS="[4,8,16,32]"
     RATIOS="[0.5,1,2]"
     ;;
+  basa)
+    TRAIN_IMDB="basa_train"
+    TEST_IMDB="basa_test"
+    ITERS=200000
+    ANCHORS=${ANCHORS_TRAIN}
+    RATIOS=${RATIOS_TRAIN}
+    ANCHORREF=${ANCHORREF_TRAIN}
+    SNAPSHOT="${SNAPSHOT_TRAIN}"
+    ;;
   *)
     echo "No dataset given"
     exit
@@ -48,9 +65,9 @@ echo Logging output to "$LOG"
 
 set +x
 if [[ ! -z  ${EXTRA_ARGS_SLUG}  ]]; then
-  NET_FINAL=output/${NET}/${TRAIN_IMDB}/${EXTRA_ARGS_SLUG}/${NET}_faster_rcnn_iter_${ITERS}.pth
+  NET_FINAL=output/${NET}/${dataname}_train/${EXTRA_ARGS_SLUG}/${SNAPSHOT}_iter_${ITERS}.pth
 else
-  NET_FINAL=output/${NET}/${TRAIN_IMDB}/default/${NET}_faster_rcnn_iter_${ITERS}.pth
+  NET_FINAL=output/${NET}/${dataname}_train/default/${SNAPSHOT}_iter_${ITERS}.pth
 fi
 set -x
 
@@ -61,15 +78,15 @@ if [[ ! -z  ${EXTRA_ARGS_SLUG}  ]]; then
     --cfg experiments/cfgs/${NET}.yml \
     --tag ${EXTRA_ARGS_SLUG} \
     --net ${NET} \
-    --set ANCHOR_SCALES ${ANCHORS} ANCHOR_RATIOS ${RATIOS} \
-          ${EXTRA_ARGS}
+    --set ANCHOR_SCALES ${ANCHORS} ANCHOR_RATIOS ${RATIOS} ANCHOR_REFERENCE ${ANCHORREF} \
+          TRAIN.SNAPSHOT_PREFIX ${SNAPSHOT} ${EXTRA_ARGS}
 else
   CUDA_VISIBLE_DEVICES=${GPU_ID} time python ./tools/test_net.py \
     --imdb ${TEST_IMDB} \
     --model ${NET_FINAL} \
     --cfg experiments/cfgs/${NET}.yml \
     --net ${NET} \
-    --set ANCHOR_SCALES ${ANCHORS} ANCHOR_RATIOS ${RATIOS} \
-          ${EXTRA_ARGS}
+    --set ANCHOR_SCALES ${ANCHORS} ANCHOR_RATIOS ${RATIOS} ANCHOR_REFERENCE ${ANCHORREF}\
+          TRAIN.SNAPSHOT_PREFIX ${SNAPSHOT} ${EXTRA_ARGS}
 fi
 

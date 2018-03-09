@@ -44,6 +44,9 @@ def parse_args():
   parser.add_argument('--tag', dest='tag',
                       help='tag of the model',
                       default=None, type=str)
+  parser.add_argument('--dataname', dest='dataname',
+                      help='different names for folder where data is located',
+                      default=None, type=str)
   parser.add_argument('--net', dest='net',
                       help='vgg16, res50, res101, res152, mobile',
                       default='res50', type=str)
@@ -63,7 +66,6 @@ def combined_roidb(imdb_names):
   """
   Combine multiple roidbs
   """
-
   def get_roidb(imdb_name):
     imdb = get_imdb(imdb_name)
     print('Loaded dataset `{:s}` for training'.format(imdb.name))
@@ -84,6 +86,18 @@ def combined_roidb(imdb_names):
   return imdb, roidb
 
 
+def save_configs_yaml(anchor_scales,anchor_ratios,anchor_reference,snapshot,dataname,net):
+  import yaml 
+  data = dict(ANCHOR_SCALES = anchor_scales, 
+              ANCHOR_RATIOS = anchor_ratios,
+              ANCHOR_REFERENCE = anchor_reference,
+              TRAIN = dict(SNAPSHOT_PREFIX = snapshot))
+  fn = 'output/' + net + '/' + dataname + '_train/default/' + snapshot + '.yml'
+  with open(fn, 'w') as outfile:
+    yaml.dump(data, outfile)
+
+  return True
+
 if __name__ == '__main__':
   args = parse_args()
 
@@ -98,15 +112,20 @@ if __name__ == '__main__':
   print('Using config:')
   pprint.pprint(cfg)
 
+
   np.random.seed(cfg.RNG_SEED)
 
   # train set
+  print(args.imdb_name)
   imdb, roidb = combined_roidb(args.imdb_name)
   print('{:d} roidb entries'.format(len(roidb)))
 
   # output directory where the models are saved
   output_dir = get_output_dir(imdb, args.tag)
   print('Output will be saved to `{:s}`'.format(output_dir))
+  print('Saving config:')
+  save_configs_yaml(cfg.ANCHOR_SCALES,cfg.ANCHOR_RATIOS,cfg.ANCHOR_REFERENCE,cfg.TRAIN.SNAPSHOT_PREFIX,args.dataname,args.net)
+  print('Saved!')
 
   # tensorboard directory where the summaries are saved during training
   tb_dir = get_output_tb_dir(imdb, args.tag)
