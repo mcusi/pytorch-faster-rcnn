@@ -13,6 +13,7 @@ from __future__ import print_function
 __sets = {}
 from datasets.pascal_voc import pascal_voc
 from datasets.coco import coco
+from datasets.basa import basa
 
 import numpy as np
 
@@ -38,6 +39,14 @@ for year in ['2015']:
   for split in ['test', 'test-dev']:
     name = 'coco_{}_{}'.format(year, split)
     __sets[name] = (lambda split=split, year=year: coco(split, year))
+
+# Set up basa_<split>
+for split in ['train', 'test']:
+  # if 'dataname' in os.environ:
+  #   name = os.environ['dataname'] + '_{}'.format(split)
+  # else:
+  name = 'basa_{}'.format(split)
+  __sets[name] = (lambda split=split: basa(split))
 
 
 def get_imdb(name):
