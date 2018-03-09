@@ -13,6 +13,8 @@ from model.bbox_transform import bbox_transform_inv, clip_boxes
 import numpy.random as npr
 
 import torch
+## Added to make __C.TEST.MODE = 'top' work --> from torch.autograd import Variable
+from torch.autograd import Variable
 
 def proposal_top_layer(rpn_cls_prob, rpn_bbox_pred, im_info, _feat_stride, anchors, num_anchors):
   """A layer that just selects the top region proposals
@@ -51,5 +53,7 @@ def proposal_top_layer(rpn_cls_prob, rpn_bbox_pred, im_info, _feat_stride, ancho
   # Our RPN implementation only supports a single input image, so all
   # batch inds are 0
   batch_inds = proposals.data.new(proposals.size(0), 1).zero_()
-  blob = torch.cat([batch_inds, proposals], 1)
+  # blob = torch.cat([batch_inds, proposals], 1)
+  ## Changed to make __C.TEST.MODE = 'top' work --> blob = torch.cat((Variable(batch_inds), proposals), 1)
+  blob = torch.cat((Variable(batch_inds), proposals), 1)
   return blob, scores
